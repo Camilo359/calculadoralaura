@@ -72,9 +72,46 @@ def calcular():
     output = io.BytesIO()
     with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
         df.to_excel(writer, index=False, sheet_name='Resultados')
+    
+        workbook = writer.book
+        worksheet = writer.sheets['Resultados']
+    
+        # Crear los gráficos
+        chart1 = workbook.add_chart({'type': 'line'})
+        chart2 = workbook.add_chart({'type': 'line'})
+    
+        # Agregar datos a los gráficos
+        # Rastreo vs O
+        chart1.add_series({
+            'name': 'Oxígeno disuelto (O)',
+            'categories': ['Resultados', 1, 0, len(df), 0],  # x (m)
+            'values':     ['Resultados', 1, 1, len(df), 1],  # O (mg/L)
+            'line': {'color': 'blue'},
+        })
+        chart1.set_title({'name': 'Rastreo vs O'})
+        chart1.set_x_axis({'name': 'Distancia (m)'})
+        chart1.set_y_axis({'name': 'O (mg/L)'})
+        chart1.set_style(10)
+    
+        # Rastreo vs L
+        chart2.add_series({
+            'name': 'Demanda Bioquímica de Oxígeno (L)',
+            'categories': ['Resultados', 1, 0, len(df), 0],  # x (m)
+            'values':     ['Resultados', 1, 2, len(df), 2],  # L (mg/L)
+            'line': {'color': 'red'},
+        })
+        chart2.set_title({'name': 'Rastreo vs L'})
+        chart2.set_x_axis({'name': 'Distancia (m)'})
+        chart2.set_y_axis({'name': 'L (mg/L)'})
+        chart2.set_style(10)
+    
+        # Insertar los gráficos en la hoja
+        worksheet.insert_chart('E2', chart1, {'x_offset': 25, 'y_offset': 10})
+        worksheet.insert_chart('E20', chart2, {'x_offset': 25, 'y_offset': 10})
+    
     output.seek(0)
-
     return send_file(output, download_name="resultados.xlsx", as_attachment=True)
+
 
 
 if __name__ == '__main__':
